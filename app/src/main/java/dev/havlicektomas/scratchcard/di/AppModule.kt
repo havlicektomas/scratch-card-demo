@@ -9,9 +9,15 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.havlicektomas.scratchcard.common.data.ScratchCardRepoImpl
+import dev.havlicektomas.scratchcard.common.data.compute.ScratchCardCodeProvider
+import dev.havlicektomas.scratchcard.common.data.compute.ScratchCardCodeProviderImpl
 import dev.havlicektomas.scratchcard.common.data.database.ScratchCardDao
 import dev.havlicektomas.scratchcard.common.data.database.ScratchCardDatabase
+import dev.havlicektomas.scratchcard.common.data.database.ScratchCardLocalDatasource
+import dev.havlicektomas.scratchcard.common.data.database.ScratchCardLocalDatasourceImpl
 import dev.havlicektomas.scratchcard.common.data.remote.ScratchCardApi
+import dev.havlicektomas.scratchcard.common.data.remote.ScratchCardRemoteDatasource
+import dev.havlicektomas.scratchcard.common.data.remote.ScratchCardRemoteDatasourceImpl
 import dev.havlicektomas.scratchcard.common.domain.ScratchCardRepo
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -42,6 +48,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideLocalDataSource(cardDao: ScratchCardDao) : ScratchCardLocalDatasource{
+        return ScratchCardLocalDatasourceImpl(cardDao)
+    }
+
+    @Provides
+    @Singleton
     fun provideScratchCardApi(): ScratchCardApi {
         val networkJson = Json { ignoreUnknownKeys = true }
         return Retrofit.Builder()
@@ -54,10 +66,27 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideRemoteDataSource(cardApi: ScratchCardApi) : ScratchCardRemoteDatasource {
+        return ScratchCardRemoteDatasourceImpl(cardApi)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCardProvider() : ScratchCardCodeProvider {
+        return ScratchCardCodeProviderImpl()
+    }
+
+    @Provides
+    @Singleton
     fun provideTaskRepository(
-        cardDao: ScratchCardDao,
-        cardApi: ScratchCardApi
+        localDatasource: ScratchCardLocalDatasource,
+        remoteDatasource: ScratchCardRemoteDatasource,
+        codeProvider: ScratchCardCodeProvider
     ): ScratchCardRepo {
-        return ScratchCardRepoImpl(cardDao, cardApi)
+        return ScratchCardRepoImpl(
+            localDatasource,
+            remoteDatasource,
+            codeProvider
+        )
     }
 }

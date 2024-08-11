@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -81,6 +83,7 @@ fun DetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
         ) {
             Card(
@@ -147,11 +150,22 @@ fun DetailScreen(
                             if (state.card.code == null) {
                                 onScratch()
                             } else {
+                                // To guarantee activation finishes even when user leaves the screen before completion
+                                // this call should be processed by work managers worker with access to ScratchCardRepo.
+                                // This way work manager would do the network call (repo.activate(code)) and save the result
+                                // to database.
                                 onActivate(state.card.code)
                             }
                         }
                     }
                 }
+            }
+        }
+        if (state is DetailScreenState.Success && state.card.activationError != null) {
+            ErrorDialog(
+                errorMessage = state.card.activationError
+            ) {
+                state.card.code?.let { onActivate(it) }
             }
         }
     }

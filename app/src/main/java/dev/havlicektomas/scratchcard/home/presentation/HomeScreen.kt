@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -50,6 +52,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
         ) {
             Card(
@@ -74,15 +77,16 @@ fun HomeScreen(
                     when (state) {
                         HomeScreenState.Unscratched -> {}
                         is HomeScreenState.Scratched  -> {
-                            Text(
+                            CodeText(
                                 text = state.card.code ?: "",
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                modifier = Modifier.padding(horizontal = 16.dp)
                             )
                         }
                         is HomeScreenState.Activated -> {
-                            Text(text = state.card.code ?: "")
+                            CodeText(
+                                text = state.card.code ?: "",
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
                             Text(text = "Activated")
                         }
                     }
@@ -112,6 +116,19 @@ fun HomeScreen(
             }
         }
     }
+}
+
+@Composable
+fun CodeText(
+    modifier: Modifier = Modifier,
+    text: String
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
 }
 
 @Composable
